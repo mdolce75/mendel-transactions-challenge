@@ -1,5 +1,6 @@
 package com.mendel.transactions.service;
 
+import com.mendel.transactions.dto.TransactionRequest;
 import com.mendel.transactions.model.Transaction;
 import com.mendel.transactions.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
@@ -15,78 +16,44 @@ public class TransactionService {
         this.repository = repository;
     }
 
-    public void create(Transaction transaction) {
+    public void createTransaction(Transaction transaction) {
         repository.save(transaction);
     }
 
-    public List<Long> findByType(String type) {
-
-        List<Long> result = new ArrayList<>();
-
-        for (Transaction transaction : repository.findAll()) {
-
-            if (transaction.getType().equals(type)) {
-                result.add(transaction.getId());
-            }
-
-        }
-
-        return result;
+    public List<Long> getTransactionsByType(String type) {
+        return repository.findByType(type);
     }
 
-    public double sum(Long transactionId) {
+    public double getTransactionSum(Long transactionId) {
 
-        Map<Long, List<Transaction>> childrenMap = buildChildrenMap();
+        Optional<Transaction> rootOpt = repository.findById(transactionId);
+
+        if (rootOpt.isEmpty()) {
+            return 0.0;
+        }
+
+        double sum = 0.0;
 
         Queue<Long> queue = new LinkedList<>();
         queue.add(transactionId);
-
-        double sum = 0;
 
         while (!queue.isEmpty()) {
 
             Long currentId = queue.poll();
 
-            Optional<Transaction> optionalTransaction =
-                    repository.findById(currentId);
+            Optional<Transaction> transaction = repository.findById(currentId);
 
-            if (optionalTransaction.isEmpty()) {
-                continue;
+            if (transaction.isPresent()) {
+                sum += transaction.get().amount();
             }
 
-            Transaction transaction = optionalTransaction.get();
-
-            sum += transaction.getAmount();
-
-            List<Transaction> children =
-                    childrenMap.getOrDefault(currentId, List.of());
+            List<Transaction> children = repository.findChildren(currentId);
 
             for (Transaction child : children) {
-                queue.add(child.getId());
+                queue.add(child.id());
             }
-
         }
 
         return sum;
-    }
-
-    private Map<Long, List<Transaction>> buildChildrenMap() {
-
-        Map<Long, List<Transaction>> map = new HashMap<>();
-
-        for (Transaction transaction : repository.findAll()) {
-
-            if (transaction.getParentId() != null) {
-
-                map.computeIfAbsent(
-                        transaction.getParentId(),
-                        k -> new ArrayList<>()
-                ).add(transaction);
-
-            }
-
-        }
-
-        return map;
     }
 }

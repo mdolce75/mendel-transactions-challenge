@@ -29,21 +29,21 @@ public class TransactionController {
 				id,
 				request.amount(),
 				request.type(),
-				request.parent_id()
+				request.parentId()
 		);
 
-		service.create(transaction);
+		service.createTransaction(transaction);
 
 		return Map.of("status", "ok");
 	}
 
 	@GetMapping("/types/{type}")
 	public List<Long> findByType(@PathVariable String type) {
-		return service.findByType(type);
+		return service.getTransactionsByType(type);
 	}
 
 	@GetMapping("/sum/{id}")
 	public SumResponse sum(@PathVariable Long id) {
-		return new SumResponse(service.sum(id));
+		return new SumResponse(service.getTransactionSum(id));
 	}
 }
