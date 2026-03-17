@@ -1,11 +1,14 @@
 package com.mendel.transactions.service;
 
-import com.mendel.transactions.dto.TransactionRequest;
 import com.mendel.transactions.model.Transaction;
 import com.mendel.transactions.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Queue;
+
 
 @Service
 public class TransactionService {
